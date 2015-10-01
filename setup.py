@@ -68,7 +68,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['googleapiclient', 'httplib2', 'oauth2client', 'pytz', 'base64', 'email', 'os', 'datetime'],
+    install_requires=['google-api-python-client', 'httplib2', 'oauth2client', 'pytz'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
