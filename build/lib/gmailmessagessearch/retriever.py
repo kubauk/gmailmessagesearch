@@ -14,17 +14,20 @@ import pytz
 
 SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 CLIENT_SECRET_FILE = 'client_secret.json'
-APPLICATION_NAME = 'PayPal Quickened'
 
 
-class Retriever:
+class Retriever(object):
     _current_service = None
     _email_cache = dict()
 
-    def __init__(self, args, email_address):
+    def __init__(self, args, application_name, email_address, search_query,
+                 secrets_directory=os.path.dirname(os.path.realpath(__file__))):
         super().__init__()
         self._args = args
+        self._application_name = application_name
         self._email_address = email_address
+        self._search_query = search_query
+        self._secrets_directory = secrets_directory
 
     def get_messages_for_date(self, transaction_date):
         return self._email_cache.get(transaction_date, self._retrieve_messages(transaction_date))
@@ -35,10 +38,9 @@ class Retriever:
         return self._current_service
 
     def _get_credentials(self):
-        script_directory = os.path.dirname(os.path.realpath(__file__))
-        store = oauth2client.file.Storage(os.path.join(script_directory, "credentials.json"))
-        flow = client.flow_from_clientsecrets(os.path.join(script_directory, CLIENT_SECRET_FILE), SCOPES)
-        flow.user_agent = APPLICATION_NAME
+        store = oauth2client.file.Storage(os.path.join(self._secrets_directory, "credentials.json"))
+        flow = client.flow_from_clientsecrets(os.path.join(self._secrets_directory, CLIENT_SECRET_FILE), SCOPES)
+        flow.user_agent = self._application_name
         return tools.run_flow(flow, store, self._args)
 
     def _list_messages_for_day(self, transaction_date):
@@ -49,7 +51,7 @@ class Retriever:
 
         after = transaction_date.strftime("%Y/%m/%d")
         before = (transaction_date + timedelta(days=1)).strftime("%Y/%m/%d")
-        query = 'from:service@paypal.co.uk after:%s before:%s' % (after, before)
+        query = '%s after:%s before:%s' % (self._search_query, after, before)
         result = service.users().messages().list(userId=self._email_address, q=query).execute()
         message_ids = result.get('messages', [])
         return message_ids
