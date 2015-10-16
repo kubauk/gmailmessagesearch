@@ -2,8 +2,10 @@ import base64
 from datetime import timedelta
 import email
 import os
-
+from threading import Event
 from googleapiclient import discovery
+from googleapiclient.http import BatchHttpRequest
+
 import httplib2
 from oauth2client import client
 from oauth2client import tools
@@ -27,6 +29,21 @@ def day_after(date):
 
 def as_query_date(date):
     return date.strftime("%Y/%m/%d")
+
+
+def decode_message(result):
+    try:
+        message_bytes = base64.urlsafe_b64decode(result['raw'])
+        return email.message_from_string(message_bytes.decode('ascii'))
+    except UnicodeDecodeError:
+        pass
+
+
+def add_message_and_unlock_if_finished(expected, messages, response, lock):
+    messages.append(decode_message(response))
+    if len(messages) == expected:
+        lock.set()
+    pass
 
 
 class Retriever(object):
@@ -73,19 +90,17 @@ class Retriever(object):
 
     def _retrieve_messages(self, message_ids):
         messages = list()
-        for message_id in message_ids:
-            messages.append(self._get_message(message_id))
-        return messages
-
-    def _get_message(self, message_id):
+        lock = Event()
+        batch = BatchHttpRequest()
         service = self._get_service()
-        get_query = service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw')
-        result = get_query.execute()
-        try:
-            message_bytes = base64.urlsafe_b64decode(result['raw'])
-            return email.message_from_string(message_bytes.decode('ascii'))
-        except UnicodeDecodeError:
-            pass
+        for message_id in message_ids:
+            batch.add(service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw'),
+                      lambda id, response, exception:
+                      add_message_and_unlock_if_finished(
+                          len(message_ids), messages, response, lock))
+        batch.execute()
+        lock.wait()
+        return messages
 
     @staticmethod
     def _build_service(current_credentials):
