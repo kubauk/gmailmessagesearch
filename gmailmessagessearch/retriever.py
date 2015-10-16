@@ -42,11 +42,11 @@ class Retriever(object):
         self._secrets_directory = secrets_directory
 
     def get_messages_for_date(self, message_date):
-        return self._retrieve_messages(self._list_messages_for_day(as_us_pacific(message_date)))
+        return self._retrieve_messages(self._list_messages_for_day(message_date))
 
     def get_messages_for_date_range(self, after_date, before_date):
         return self._retrieve_messages(
-            self._list_messages_for_days(as_us_pacific(after_date), as_us_pacific(before_date)))
+            self._list_messages_for_days(after_date, before_date))
 
     def _get_service(self):
         if self._current_service is None:
@@ -60,10 +60,12 @@ class Retriever(object):
         return tools.run_flow(flow, store, self._args)
 
     def _list_messages_for_day(self, date):
-        return self._list_messages_for_days(as_query_date(date), as_query_date(day_after(date)))
+        return self._list_messages_for_days(date, day_after(date))
 
     def _list_messages_for_days(self, after, before):
-        query = '%s after:%s before:%s' % (self._search_query, after, before)
+        query = '%s after:%s before:%s' % (self._search_query,
+                                           as_query_date(as_us_pacific(after)),
+                                           as_query_date(as_us_pacific(before)))
         service = self._get_service()
         result = service.users().messages().list(userId=self._email_address, q=query).execute()
         message_ids = result.get('messages', [])
