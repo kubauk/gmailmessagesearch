@@ -12,13 +12,25 @@ from oauth2client.file import Storage
 import pytz
 
 
-SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
-CLIENT_SECRET_FILE = 'client_secret.json'
+_SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
+_CLIENT_SECRET_FILE = 'client_secret.json'
+_US_PACIFIC_TZ = pytz.timezone('US/Pacific')
+
+
+def as_us_pacific(date):
+    return date.astimezone(_US_PACIFIC_TZ)
+
+
+def day_after(date):
+    return date + timedelta(days=1)
+
+
+def as_query_date(date):
+    return date.strftime("%Y/%m/%d")
 
 
 class Retriever(object):
     _current_service = None
-    _email_cache = dict()
 
     def __init__(self, args, application_name, email_address, search_query,
                  secrets_directory=os.path.dirname(os.path.realpath(__file__))):
@@ -29,8 +41,12 @@ class Retriever(object):
         self._search_query = search_query
         self._secrets_directory = secrets_directory
 
-    def get_messages_for_date(self, transaction_date):
-        return self._email_cache.get(transaction_date, self._retrieve_messages(transaction_date))
+    def get_messages_for_date(self, message_date):
+        return self._retrieve_messages(self._list_messages_for_day(as_us_pacific(message_date)))
+
+    def get_messages_for_date_range(self, after_date, before_date):
+        return self._retrieve_messages(
+            self._list_messages_for_days(as_us_pacific(after_date), as_us_pacific(before_date)))
 
     def _get_service(self):
         if self._current_service is None:
@@ -39,25 +55,21 @@ class Retriever(object):
 
     def _get_credentials(self):
         store = oauth2client.file.Storage(os.path.join(self._secrets_directory, "credentials.json"))
-        flow = client.flow_from_clientsecrets(os.path.join(self._secrets_directory, CLIENT_SECRET_FILE), SCOPES)
+        flow = client.flow_from_clientsecrets(os.path.join(self._secrets_directory, _CLIENT_SECRET_FILE), _SCOPES)
         flow.user_agent = self._application_name
         return tools.run_flow(flow, store, self._args)
 
-    def _list_messages_for_day(self, transaction_date):
-        service = self._get_service()
+    def _list_messages_for_day(self, date):
+        return self._list_messages_for_days(as_query_date(date), as_query_date(day_after(date)))
 
-        us_pacific_tz = pytz.timezone('US/Pacific')
-        transaction_date = transaction_date.astimezone(us_pacific_tz)
-
-        after = transaction_date.strftime("%Y/%m/%d")
-        before = (transaction_date + timedelta(days=1)).strftime("%Y/%m/%d")
+    def _list_messages_for_days(self, after, before):
         query = '%s after:%s before:%s' % (self._search_query, after, before)
+        service = self._get_service()
         result = service.users().messages().list(userId=self._email_address, q=query).execute()
         message_ids = result.get('messages', [])
         return message_ids
 
-    def _retrieve_messages(self, transaction_date):
-        message_ids = self._list_messages_for_day(transaction_date)
+    def _retrieve_messages(self, message_ids):
         messages = list()
         for message_id in message_ids:
             messages.append(self._get_message(message_id))
