@@ -1,11 +1,12 @@
 Metadata-Version: 1.1
 Name: gmailmessagesearch
-Version: 0.2.0
+Version: 0.2.1
 Summary: Simple library for searching and retrieving emails using the gmail REST API
 Home-page: https://bitbucket.org/kubauk/gmailmessagesearch
 Author: Jakub Jamro
 Author-email: kuba.jamro@gmail.com
 License: UNKNOWN
+Description-Content-Type: UNKNOWN
 Description: GMail message search
         ====================
         
