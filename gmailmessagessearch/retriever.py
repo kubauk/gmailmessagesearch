@@ -11,6 +11,7 @@ from googleapiclient import discovery
 from googleapiclient.http import BatchHttpRequest
 from oauth2client import client
 from oauth2client import tools
+from oauth2client import file
 
 _SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 _CLIENT_SECRET_FILE = 'client_secret.json'
