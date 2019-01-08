@@ -1,18 +1,16 @@
 import base64
-from datetime import timedelta
 import email
 import os
+from datetime import timedelta
 from threading import Event
-from googleapiclient import discovery
-from googleapiclient.http import BatchHttpRequest
 
 import httplib2
+import oauth2client
+import pytz
+from googleapiclient import discovery
+from googleapiclient.http import BatchHttpRequest
 from oauth2client import client
 from oauth2client import tools
-import oauth2client
-from oauth2client.file import Storage
-import pytz
-
 
 _SCOPES = 'https://www.googleapis.com/auth/gmail.readonly'
 _CLIENT_SECRET_FILE = 'client_secret.json'
@@ -46,13 +44,22 @@ def add_message_and_unlock_if_finished(expected, messages, response, lock):
     pass
 
 
+def _fake_arg_parser():
+    class FakeArgParser(object):
+        auth_host_name = "localhost"
+        noauth_local_webserver = False
+        auth_host_port = [8080, 8090]
+        logging_level = 'ERROR'
+    return FakeArgParser()
+
+
 class Retriever(object):
     _current_service = None
 
-    def __init__(self, args, application_name, email_address, search_query,
+    def __init__(self, application_name, email_address, search_query,
                  secrets_directory=os.path.dirname(os.path.realpath(__file__))):
         super().__init__()
-        self._args = args
+        self._args = _fake_arg_parser()
         self._application_name = application_name
         self._email_address = email_address
         self._search_query = search_query
