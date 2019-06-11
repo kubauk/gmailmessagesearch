@@ -94,20 +94,29 @@ class Retriever(object):
         service = self._get_service()
         result = service.users().messages().list(userId=self._email_address, q=query).execute()
         message_ids = result.get('messages', [])
-        return message_ids
+        message_batches = [message_ids]
 
-    def _retrieve_messages(self, message_ids):
+        while 'nextPageToken' in result:
+            result = service.users().messages().list(userId=self._email_address,
+                                                     pageToken=result['nextPageToken'],
+                                                     q=query).execute()
+            message_batches.append(result.get('messages', []))
+
+        return message_batches
+
+    def _retrieve_messages(self, message_batches):
         messages = list()
         lock = Event()
         batch = BatchHttpRequest()
         service = self._get_service()
-        for message_id in message_ids:
-            batch.add(service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw'),
-                      lambda id, response, exception:
-                      add_message_and_unlock_if_finished(
-                          len(message_ids), messages, response, lock))
-        batch.execute()
-        lock.wait()
+        for message_ids in message_batches:
+            for message_id in message_ids:
+                batch.add(service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw'),
+                          lambda id, response, exception:
+                          add_message_and_unlock_if_finished(
+                              len(message_ids), messages, response, lock))
+            batch.execute()
+            lock.wait()
         return messages
 
     @staticmethod
