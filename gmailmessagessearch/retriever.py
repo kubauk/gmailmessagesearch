@@ -107,7 +107,7 @@ class Retriever(object):
     def _retrieve_messages(self, message_batches):
         messages = list()
         lock = Event()
-        batch = BatchHttpRequest()
+        batch = BatchHttpRequest(batch_uri="https://www.googleapis.com/batch/gmail/v1")
         service = self._get_service()
         for message_ids in message_batches:
             for message_id in message_ids:
