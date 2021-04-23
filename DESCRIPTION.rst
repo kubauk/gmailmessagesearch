@@ -1,3 +1,0 @@
-GMail message search
-====================
-
