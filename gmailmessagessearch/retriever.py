@@ -57,21 +57,19 @@ def _fake_arg_parser():
 class Retriever(object):
     _current_service = None
 
-    def __init__(self, application_name, email_address, search_query,
-                 secrets_directory=os.path.dirname(os.path.realpath(__file__))):
+    def __init__(self, application_name, email_address, secrets_directory=os.path.dirname(os.path.realpath(__file__))):
         super().__init__()
         self._args = _fake_arg_parser()
         self._application_name = application_name
         self._email_address = email_address
-        self._search_query = search_query
         self._secrets_directory = secrets_directory
 
-    def get_messages_for_date(self, message_date):
-        return self._retrieve_messages(self._list_messages_for_day(message_date))
+    def get_messages_for_date(self, search_query, message_date):
+        return self._retrieve_messages(self._list_messages_for_day(search_query, message_date))
 
-    def get_messages_for_date_range(self, after_date, before_date):
+    def get_messages_for_date_range(self, search_query, after_date, before_date):
         return self._retrieve_messages(
-            self._list_messages_for_days(after_date, before_date))
+            self._list_messages_for_days(search_query, after_date, before_date))
 
     def _get_service(self):
         if self._current_service is None:
@@ -84,11 +82,11 @@ class Retriever(object):
         flow.user_agent = self._application_name
         return tools.run_flow(flow, store, self._args)
 
-    def _list_messages_for_day(self, date):
-        return self._list_messages_for_days(date, day_after(date))
+    def _list_messages_for_day(self, search_query, date):
+        return self._list_messages_for_days(search_query, date, day_after(date))
 
-    def _list_messages_for_days(self, after, before):
-        query = '%s after:%s before:%s' % (self._search_query,
+    def _list_messages_for_days(self, search_query, after, before):
+        query = '%s after:%s before:%s' % (search_query,
                                            as_query_date(as_us_pacific(after)),
                                            as_query_date(as_us_pacific(before)))
         service = self._get_service()
