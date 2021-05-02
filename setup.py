@@ -18,11 +18,12 @@ setup(
     # https://packaging.python.org/en/latest/single_source_version.html
     version='0.3',
 
-    description='Simple library for searching and retrieving emails using the gmail REST API',
+    description='Simple library for searching and retrieving emails using the GMail REST API',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
-    url='https://bitbucket.org/kubauk/gmails',
+    url='https://github.com/kubauk/gmails',
 
     # Author details
     author='Jakub Jamro',

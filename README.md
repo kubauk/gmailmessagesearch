@@ -1,6 +1,6 @@
 
 GMails - A simple GMail message retriever
-====================
+=========================================
 
 A naive wrapper library that uses the Python GMail SDK.
 
