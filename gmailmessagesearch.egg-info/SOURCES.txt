@@ -1,9 +1,0 @@
-setup.cfg
-setup.py
-gmailmessagesearch.egg-info/PKG-INFO
-gmailmessagesearch.egg-info/SOURCES.txt
-gmailmessagesearch.egg-info/dependency_links.txt
-gmailmessagesearch.egg-info/requires.txt
-gmailmessagesearch.egg-info/top_level.txt
-gmailmessagessearch/__init__.py
-gmailmessagessearch/retriever.py

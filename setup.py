@@ -11,18 +11,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='gmailmessagesearch',
+    name='gmails',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.4',
+    version='0.3',
 
     description='Simple library for searching and retrieving emails using the gmail REST API',
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://bitbucket.org/kubauk/gmailmessagesearch',
+    url='https://bitbucket.org/kubauk/gmails',
 
     # Author details
     author='Jakub Jamro',
@@ -37,7 +37,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -63,7 +63,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='gmail search message email',
+    keywords='gmail search message email gmails',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
