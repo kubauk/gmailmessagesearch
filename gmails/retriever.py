@@ -117,13 +117,15 @@ class Retriever(object):
         batch = BatchHttpRequest(batch_uri="https://www.googleapis.com/batch/gmail/v1")
         service = self._get_service()
         for message_ids in message_batches:
-            for message_id in message_ids:
-                batch.add(service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw'),
-                          lambda id, response, exception:
-                          add_message_and_unlock_if_finished(
-                              len(message_ids), messages, response, lock))
-            batch.execute()
-            lock.wait()
+            if len(message_ids) > 0:
+                for message_id in message_ids:
+                    batch.add(
+                        service.users().messages().get(userId=self._email_address, id=message_id['id'], format='raw'),
+                        lambda id, response, exception:
+                        add_message_and_unlock_if_finished(
+                            len(message_ids), messages, response, lock))
+                batch.execute()
+                lock.wait()
         return messages
 
     @staticmethod
